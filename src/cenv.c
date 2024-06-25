@@ -3,12 +3,13 @@
 #include <string.h>
 #include "cenv.h"
 
-int count_env;
-char** envvars;
+int* count_env = NULL;
+int count_calls = 0;
+char*** envvars = NULL;
 
 int count_rows(FILE* file, int* buffer_size_arg){
 	
-	int rows = 0;
+	int rows = 1;
 	const int buffer_size = buffer_size_arg ? *buffer_size_arg : 1024;
 	char* buffer = (char*) malloc(sizeof(char) * buffer_size);
 	while(1){
@@ -45,7 +46,12 @@ int load_env_vars(const char* fullpath){
 		return -1;
 	}
 
-	envvars = (char**) malloc(sizeof(char*) * row_count);
+	if(!envvars)
+		envvars = (char***) malloc(sizeof(char**));
+	else
+		envvars = (char***) realloc(envvars, sizeof(envvars) + sizeof(char**));
+	
+	envvars[count_calls] = (char**) malloc(sizeof(char*) * row_count);
 
 	int row_buffer_size = 256;
 	char row_buffer[row_buffer_size];
@@ -55,7 +61,7 @@ int load_env_vars(const char* fullpath){
 		if(!name){
 			fprintf(stderr, "Invalid format of variable in .env on line %d, missing =\n", successes + 1);
 			for(int i=0; i<successes; ++i){
-				unsetenv(envvars[i]);
+				unsetenv(envvars[count_calls][i]);
 				free(envvars[i]);
 			}
 			free(envvars);
@@ -67,26 +73,31 @@ int load_env_vars(const char* fullpath){
 			fprintf(stderr, "Error setting variable %s\n", name);
 		
 		else{
-			envvars[successes] = (char*) malloc(sizeof(char) * strlen(name) + 1);
-			strcpy(envvars[successes], name);
+			envvars[count_calls][successes] = (char*) malloc(sizeof(char) * strlen(name) + 1);
+			strcpy(envvars[count_calls][successes], name);
 			++successes;
 		}
 	}
 
-	for(int i=0; i<row_count; ++i){
-		free(envvars[i]);
-	}
-	free(envvars);
 	fclose(envfile);
-	count_env = successes;
+	if(!count_env)
+		count_env = (int*) malloc(sizeof(int));
+	else
+		count_env = (int*) realloc(count_env, sizeof(count_env) + sizeof(int));
+	count_env[count_calls] = successes;
+	++count_calls;
 	return successes;
 
 }
 
 void unload_env_vars(){
-	for(int i=0; i<count_env; ++i){
-		unsetenv(envvars[i]);
+	for(int i=0; i<count_calls; ++i){
+		for(int j=0; j<count_env[i]; ++j){
+			unsetenv(envvars[i][j]);
+			free(envvars[i][j]);
+		}
 		free(envvars[i]);
 	}
-	free(envvars);	
+	free(envvars);
+	envvars = NULL;
 }
