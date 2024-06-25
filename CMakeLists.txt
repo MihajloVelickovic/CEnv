@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.10)
+project("CENV" LANGUAGES C)
+file(GLOB SRCFILES src/*.c)
+add_library(cenv STATIC ${SRCFILES})
+target_include_directories(cenv PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
