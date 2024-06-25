@@ -37,10 +37,10 @@ static int check_references(const char* value, char** returner){
 	*returner = NULL;
 	int count = 0;
 	retval[count] = (char*) malloc(sizeof(char) * strlen(value) + 1);
+	strcpy(retval[count], value);
 	char* dollar_open_brace = strstr(retval[count], "${");
 	char* closed_brace = strstr(retval[count], "}");
 	int diff, broken = 0;
-	strcpy(retval[count], value);
 	while(dollar_open_brace && closed_brace && 
 		 (diff = closed_brace - dollar_open_brace) > 0){
 			if(diff - 2 <= 0)
