@@ -3,9 +3,9 @@
 #include <string.h>
 #include "cenv.h"
 
-int* count_env = NULL;
-int count_calls = 0;
-char*** envvars = NULL;
+static int* count_env = NULL;
+static int count_calls = 0;
+static char*** envvars = NULL;
 
 static int count_rows(FILE* file, int* buffer_size_arg){
 	
