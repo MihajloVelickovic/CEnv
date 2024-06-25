@@ -98,6 +98,7 @@ void unload_env_vars(){
 		}
 		free(envvars[i]);
 	}
+	free(count_env);
 	free(envvars);
 	envvars = NULL;
 }
